@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zn.learningonline.mapper.UserMapper">
+    <select id="queryUserAndAuthoritiesByCode" resultMap="UserMap">
+        select user.user_id, password, user_Name, code, sex, age, r.role_id, role_name from user
+        left join user_role ur on user.user_id = ur.user_id
+        left join role r on ur.role_id = r.role_id
+        where code = #{code}
+    </select>
+    <resultMap id="role" type="com.zn.learningonline.entity.Role">
+        <result property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+    </resultMap>
+    <resultMap type="com.zn.learningonline.entity.User" id="UserMap">
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_Name" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="sex" column="sex" jdbcType="VARCHAR"/>
+        <result property="age" column="age" jdbcType="INTEGER"/>
+        <collection property="roleList" resultMap="role"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="UserMap">
+        select user_id,
+               password,
+               user_Name,
+               code,
+               sex,
+               age
+        from user
+        where user_id = #{userId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="UserMap">
+        select user_id,
+               password,
+               user_Name,
+               code,
+               sex,
+               age
+        from user
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="UserMap">
+        select
+        user_id, password, user_Name, code, sex, age
+        from user
+        <where>
+            <if test="userId != null">
+                and user_id = #{userId}
+            </if>
+            <if test="password != null and password != ''">
+                and password = #{password}
+            </if>
+            <if test="userName != null and userName != ''">
+                and user_Name = #{userName}
+            </if>
+            <if test="code != null and code != ''">
+                and code = #{code}
+            </if>
+            <if test="sex != null and sex != ''">
+                and sex = #{sex}
+            </if>
+            <if test="age != null">
+                and age = #{age}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="userId" useGeneratedKeys="true">
+        insert into user(password, user_Name, code, sex, age)
+        values (#{password}, #{userName}, #{code}, #{sex}, #{age})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="userId" useGeneratedKeys="true">
+        insert into LearningOnline.user(password, user_Name, code, sex, age)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.password}, #{entity.userName}, #{entity.code}, #{entity.sex}, #{entity.age})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="userId" useGeneratedKeys="true">
+        insert into user(password, user_Name, code, sex, age)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.password}, #{entity.userName}, #{entity.code}, #{entity.sex}, #{entity.age})
+        </foreach>
+        on duplicate key update
+        password = values(password) , user_Name = values(user_Name) , code = values(code) , sex = values(sex) , age =
+        values(age)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update user
+        <set>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="userName != null and userName != ''">
+                user_Name = #{userName},
+            </if>
+            <if test="code != null and code != ''">
+                code = #{code},
+            </if>
+            <if test="sex != null and sex != ''">
+                sex = #{sex},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+        </set>
+        where user_id = #{userId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from user
+        where user_id = #{userId}
+    </delete>
+
+</mapper>
